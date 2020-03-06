@@ -1,0 +1,5 @@
+Start->Programs->Microsoft Visual Studio .NET 2019->Microsoft Visual Studio Tools
+
+cd d:\Temp\DS\s01
+cl.exe p1.c
+p1.exe
