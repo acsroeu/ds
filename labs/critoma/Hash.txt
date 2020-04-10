@@ -1,0 +1,342 @@
+
+#include <iostream>
+
+using namespace std;
+
+struct Nod{
+	char *inf;
+	Nod* next;
+}; //utilizare mecanism chaining
+
+int hashFunctie(char *str, int n){ //determinare pozitie in tabela hash
+	int s=0;
+	for(int i=0; i<strlen(str); i++)
+		s += str[i];
+
+	return s % n;//determinare pozitie string str in tabela dispersie
+}
+
+//inserare string the tabela de dispersie
+Nod** insTabelaHash(Nod** tHash, char* str, int n){
+	int poz;
+	poz = hashFunctie(str, n);
+	//lista in care trebuie sa inserez string-ul este tHash[poz]
+	Nod* nou = new Nod;
+	nou->inf = str;//copiere adresa heap in nodul inserat
+	nou->next = tHash[poz];
+
+	tHash[poz] = nou;
+	return tHash;
+
+}
+
+//cautare string in tabela de dispersie
+Nod** cautaHash(Nod* *tHash, char* str, int n, int &m){
+	Nod* *vStr = 0;
+	int poz;
+	poz = hashFunctie(str, n);
+	Nod* tmp = tHash[poz];
+	m = 0; //numarul de noduri cu str identic
+	//determinare numaru de noduri cu str identic
+	while(tmp){
+		if(!strcmp(str, tmp->inf))
+			m=m+1;
+		tmp= tmp->next;
+	}
+
+	if(m){
+		//alocare vector pentru adrese noduri cu str identic
+		vStr = new Nod*[m];
+		tmp = tHash[poz];
+		int i=0;	
+		while(tmp){
+			if(!strcmp(str, tmp->inf)){
+				vStr[i] = tmp;
+				i=i+1;
+			}
+			tmp= tmp->next;
+		}
+	}
+	
+	return vStr;
+}
+
+void main(){
+
+	//Tabela de dispersie cu chaining
+	Nod* * tabHash = 0;//vector cu elemente Nod*
+	int n; //dimensiune tabela
+	n = 100;
+
+	tabHash = new Nod*[n];//alocare vector de pointeri (spatiu pt tabela de dispersie)
+	for(int i=0; i<n; i++)
+		tabHash[i] = 0;
+
+	char buff[100];
+	FILE * f;
+	f=fopen("strings.txt","r");
+	fscanf(f,"%s", buff);
+	while(!feof(f)){
+		char* str;
+		str = new char[strlen(buff)+1];
+		strcpy(str, buff);
+		
+		//inserare string in tabela de dispersie
+		tabHash=insTabelaHash(tabHash, str, n);
+
+
+		fscanf(f,"%s", buff);
+	}
+
+	//vizualizare continut tabela de dispersie
+	for(int i=0; i<n; i++){//parsare tabela de dispersie (toate elementele din vector)
+		if(tabHash[i]){
+			Nod* tmp = tabHash[i];
+			cout<<endl;
+			while(tmp){//traversare lista simpla de pe pozitia i
+				cout<<tmp->inf<<endl;
+				tmp= tmp->next;
+			}
+		}
+	}
+
+	cout<<endl;
+
+	//cautare string in tabela de dispersie
+	Nod** vString;
+	int m;
+	vString = cautaHash(tabHash, "Ionescu", n, m);
+	cout<<"Cautare string:"<<endl;
+	if(vString){
+		for(int i=0; i<m; i++)
+			cout<<vString[i]->inf<<endl;
+	}
+	cout<<endl;
+
+	//dezalocare structuri: tabela hash, vectorul cu noduri identificate la cautare
+
+	fclose(f);
+
+	//Tabela de dispersie cu linear probing
+	char* *tabHashP = 0;
+	tabHashP = new char*[n];//n - dimensiune tabela
+	for(int i = 0; i<n; i++)
+		tabHashP[i] = 0;//initializare tabela linear probing
+
+	int poz;
+	//poz - pozitie determinata
+	while(tabHashP[poz]){
+		if(poz<n){
+			if(tabHashP[poz])
+				poz=poz+1;
+		}
+		else
+			poz=0;
+	}
+
+}
+
+##############################################
+
+//#include <iostream>
+//using namespace std;
+
+//be sure that Angajat_Masina.csv is argv[0]
+//from: http://ism.ase.ro/temp/Angajat_Masina.csv.txt
+//see an OOP implementation @: http://www.cprogramming.com/snippets/source-code/hash-table-in-cplusplus
+#include <stdio.h>
+#include <malloc.h>
+#include <string.h>
+#include <stdlib.h>
+
+struct Angajat {
+	int id;
+	char* nume;
+	float salariu;
+};
+
+struct Masina
+{
+	int regId;
+	char* tip;
+	int anProductie;
+};
+
+//Node
+struct Node
+{
+	Angajat* key;
+	Masina* value;
+	Node* next;
+}; //use as item/node/entry in hashtable + chaining mechanism
+
+unsigned long int hashFunction(Angajat* keyObject, unsigned long int hashCapacity){ //determinare pozitie in tabela hash
+	unsigned long int hash = 0;
+	hash = (unsigned long int)((float)keyObject->id + keyObject->salariu);
+	return (hash % hashCapacity);//position in hashtable with hashCapacity
+}
+
+/*
+//other hash functions samples:
+unsigned long int javaLikeAddress_hash(unsigned char* key) {
+	unsigned long int hash = 0;
+	hash = (unsigned long int)&key;
+	return hash;
+}
+
+unsigned long int joaat_hash(unsigned char* key, int len) {
+	unsigned long int hash = 0;
+	int i = 0;
+	for(i = 0; i < len; i++) {
+		hash += key[i];
+		hash += (hash << 10);
+		hash ^= (hash >> 6);
+	}
+	hash += (hash << 3);
+	hash ^= (hash >> 11);
+	hash += (hash << 15);
+	return hash;
+}
+
+unsigned int hashFunction(char *str, int n){ //determinare pozitie in tabela hash
+	int s=0;
+	for(int i=0; i<strlen(str); i++)
+		s += str[i];
+
+	return s % n;//determinare pozitie string str in tabela dispersie
+}
+*/
+
+//inserare pair<K,V> in tabela de dispersie
+Node** putInHash(Node** tHash, Angajat* key, Masina* value, unsigned long int hCapacity){
+	int poz;
+	poz = hashFunction(key, hCapacity);
+	//lista in care trebuie sa inserez cheia si valoarea concatenate in Node este tHash[poz]
+	Node* nou = (Node*)malloc(1 * sizeof(Node));
+	nou->key = key;
+	nou->value = value;
+	nou->next = tHash[poz];
+
+	tHash[poz] = nou;
+	return tHash;
+}
+
+//cautare valoare in tabela de dispersie
+Node** getValuesFromHash(Node** tHash, Angajat* key, unsigned long int hCapacity, int* noCollitions){
+	Node** valueRez = 0;
+	int poz;
+	poz = hashFunction(key, hCapacity);
+	Node* tmp = tHash[poz];
+	*noCollitions = 0; //numarul de noduri cu k identic
+	//determinare numaru de noduri cu k identic
+	while(tmp) {
+		if(key->id == tmp->key->id)	(*noCollitions)++;
+		
+		tmp = tmp->next;
+	}
+
+	if((*noCollitions)) {
+		//alocare vector pentru adrese noduri cu k identic
+		valueRez = (Node**)malloc((*noCollitions) * sizeof(Node*)); 
+		tmp = tHash[poz];
+		int i=0;	
+		while(tmp) {
+			if(key->id == tmp->key->id){
+				valueRez[i] = tmp;
+				i++;
+			}
+			
+			tmp = tmp->next;
+		}
+	}
+	
+	return valueRez;
+}
+
+int main(int argc, char** argv)
+{
+	int capacityHash = 100; //dimensiune tabelaHash
+	//Tabela de dispersie cu chaining; pointer la pointer - interpretat ca vector cu elemente Node
+	Node** tabHash = NULL;
+	
+	//alocare vector de pointeri (spatiu pt tabela de dispersie)
+	tabHash = (Node**)malloc(capacityHash * sizeof(Node*));
+	
+	//intializare pointeri din tabela de dispersie - Hashtable
+	for(int i = 0; i < capacityHash; i++)
+		tabHash[i] = NULL;
+
+	if(argc != 2)
+		return -1;
+
+	char buff[250];
+	FILE* f;
+	f = fopen(argv[1], "r");
+
+	fgets(buff, sizeof(buff), f); 
+	//fscanf(f, "%s", buff);// <->read until spaces
+
+	char* token = NULL; char* separators = ",\n\t";
+	while(!feof(f)){	
+		//printf("\n Line = %s \n\t Tokens: ", buff);
+		token = strtok((char*)buff, separators);
+
+		int columnNo = 0;
+		Angajat* k = (Angajat*)malloc(1 * sizeof(Angajat));
+		Masina* v = (Masina*)malloc(1 * sizeof(Masina));
+		while(token)
+		{
+			//printf("col[%d] = %s, ", columnNo, token);
+			
+			switch(columnNo) {
+				case 0: k->id = atoi(token); break;
+				case 1: k->nume = (char*)malloc((strlen(token) + 1) * sizeof(char)); strcpy(k->nume, token); break;
+				case 2: k->salariu = (float)atof(token); break;
+				case 3: v->regId = atoi(token); break;
+				case 4: v->tip = (char*)malloc((strlen(token) + 1) * sizeof(char)); strcpy(v->tip, token); break;
+				case 5: v->anProductie = atoi(token); break;
+			}
+
+			columnNo++;
+			token = strtok(NULL, separators);
+		}
+
+		//inserare string in tabela de dispersie
+		tabHash = putInHash(tabHash, k, v, capacityHash);
+						
+		fgets(buff, sizeof(buff), f);
+	}
+		
+	fclose(f);
+
+	//vizualizare continut tabela de dispersie
+	for(int i = 0; i < capacityHash; i++) {//parsare tabela de dispersie (toate elementele din vector)
+		if(tabHash[i]) {
+			Node* tmp = tabHash[i];
+			printf("\n");
+			while(tmp) {//traversare lista simpla de pe pozitia i
+				printf("\n tabHash[%d] = ", hashFunction(tmp->key, capacityHash));
+				printf("\n K = {[id = %d, nume = %s, salariu = %f]}", tmp->key->id, tmp->key->nume, tmp->key->salariu);
+				printf("\n <-> V = {[regId = %d, tip = %s, anProductie = %d]}", tmp->value->regId, tmp->value->tip, tmp->value->anProductie);
+				tmp= tmp->next;
+			}
+		}
+	}
+
+	//cautare Masina in tabela de dispersie in functie de Angajat
+	Angajat* myKey = (Angajat*)malloc(1 * sizeof(Angajat));
+	myKey->id = 107; myKey->nume = "Bratu Elena"; myKey->salariu = 2105.4;
+	Node** valuesFromH = NULL;
+	int nCollision;
+	valuesFromH = getValuesFromHash(tabHash, myKey, capacityHash, &nCollision);
+	
+	printf("\nCautare valori asociate cheii:\n");
+	if(valuesFromH != NULL){
+		for(int i = 0; i < nCollision; i++)
+			printf("\ntabHash[%d] = V[%d] = {[regId = %d, tip = %s, anProductie = %d]}", hashFunction(myKey, capacityHash), i, valuesFromH[i]->value->regId, valuesFromH[i]->value->tip, valuesFromH[i]->value->anProductie);
+	}
+	
+	//dezalocare structuri: tabela hash, vectorul cu noduri identificate la cautare
+	
+	return 0;
+}
