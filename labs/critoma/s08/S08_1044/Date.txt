@@ -1,0 +1,8 @@
+Profesor		1000
+Medic			1500
+Judecator		3500
+Inginer			2000
+Pilot			1230
+Magistrat		4700
+Procuror		2300
+Programator		8655
