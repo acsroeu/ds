@@ -1,0 +1,9 @@
+Avocat		3900
+Medic		1500
+Magistrat	7654
+Judecator	3500
+Profesor	1000
+Programator	8977
+Inginer		2000
+Pilot		5100
+Arhitect	3800
